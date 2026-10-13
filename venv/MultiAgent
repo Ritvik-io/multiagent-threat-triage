@@ -1,0 +1,94 @@
+from typing import TypedDict
+from langchain_ollama import ChatOllama
+from langchain_community.tools import DuckDuckGoSearchRun
+from langchain_core.messages import SystemMessage, HumanMessage
+from langgraph.graph import StateGraph, END
+
+# 1. Initialize local Ollama LLM and search tool
+llm = ChatOllama(model="llama3.2", temperature=0)
+search_tool = DuckDuckGoSearchRun()
+
+# 2. Define shared graph state
+class AgentState(TypedDict):
+    topic: str
+    search_data: str
+    research_notes: str
+    final_report: str
+
+# ---------------------------------------------------------------------------
+# AGENT 1: Researcher Agent (DuckDuckGo + Ollama)
+# ---------------------------------------------------------------------------
+def researcher_agent(state: AgentState) -> dict:
+    print(f"\n Searching DuckDuckGo for: '{state['topic']}'...")
+    
+    # Run search
+    raw_results = search_tool.run(state["topic"])
+    
+    # Process with local Ollama
+    prompt = f"""
+    You are an expert Security Threat Analyst.
+    Extract key technical facts, CVEs, tools, or metrics from these raw web search results:
+
+    RAW WEB DATA:
+    {raw_results}
+    """
+    response = llm.invoke([
+        SystemMessage(content="Extract concise, technical bullet points."),
+        HumanMessage(content=prompt)
+    ])
+    
+    return {
+        "search_data": raw_results,
+        "research_notes": response.content
+    }
+
+# ---------------------------------------------------------------------------
+# AGENT 2: Executive Writer Agent
+# ---------------------------------------------------------------------------
+def writer_agent(state: AgentState) -> dict:
+    print("\n Drafting executive report with Ollama...")
+    
+    prompt = f"""
+    You are a Technical Report Writer.
+    Using ONLY the research notes provided below, write a clean 3-bullet-point executive summary report on '{state['topic']}':
+
+    RESEARCH NOTES:
+    {state['research_notes']}
+    """
+    response = llm.invoke([
+        SystemMessage(content="Write clear, professional executive summaries."),
+        HumanMessage(content=prompt)
+    ])
+    
+    return {"final_report": response.content}
+
+# ---------------------------------------------------------------------------
+# 3. BUILD LANGGRAPH WORKFLOW
+# ---------------------------------------------------------------------------
+workflow = StateGraph(AgentState)
+
+workflow.add_node("Researcher", researcher_agent)
+workflow.add_node("Writer", writer_agent)
+
+workflow.set_entry_point("Researcher")
+workflow.add_edge("Researcher", "Writer")
+workflow.add_edge("Writer", END)
+
+app = workflow.compile()
+
+# ---------------------------------------------------------------------------
+# 4. EXECUTE
+# ---------------------------------------------------------------------------
+if __name__ == "__main__":
+    initial_input = {
+        "topic": "Multi-agent AI systems in cybersecurity threat triage",
+        "search_data": "",
+        "research_notes": "",
+        "final_report": ""
+    }
+
+    print("🚀 Starting Local Multi-Agent System (Ollama + DuckDuckGo)...")
+    output = app.invoke(initial_input)
+
+    print("\n================ FINAL REPORT ================")
+    print(output["final_report"])
