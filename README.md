@@ -1,85 +1,100 @@
 # 🛡️ Local Multi-Agent Cybersecurity Threat Triage System
 
-An end-to-end, privacy-focused AI system for cybersecurity threat research and executive reporting. Built using **LangGraph, LangChain, Ollama, and DuckDuckGo Search**, the system coordinates specialized AI agents to research cybersecurity threats and generate concise, structured reports using a locally running language model.
+An end-to-end, privacy-focused AI application for cybersecurity threat research, document analysis, and executive reporting. Built with **Streamlit, LangGraph, LangChain, Ollama, HuggingFace, FAISS, and DuckDuckGo Search**, the system combines locally processed PDF documents with live web research to generate concise, AI-powered cybersecurity threat summaries.
 
 ## 📌 Key Features
 
-- **🔒 Local AI Inference:** Uses Ollama with `llama3.2` to generate reports locally without relying on paid cloud LLM APIs.
-- **🌐 Live Threat Research:** Integrates DuckDuckGo Search through `ddgs` to retrieve relevant cybersecurity information from the web.
-- **🤖 Multi-Agent Architecture:** Uses LangGraph to orchestrate specialized agents through a structured workflow.
-- **🔍 Technical Fact Extraction:** Researches cybersecurity topics and organizes relevant technical findings into research notes.
-- **📊 Executive Reporting:** Converts technical research into concise, three-bullet executive summaries.
-- **🧩 Modular Workflow:** Separates research and report generation into distinct agent nodes for easier maintenance and future expansion.
+- 🔒 **Local LLM Inference:** Uses Ollama with `llama3.2` to generate reports locally without paid cloud LLM APIs.
+- 🖥️ **Interactive Streamlit Dashboard:** Provides a web interface for entering cybersecurity queries, uploading PDF documents, and viewing generated reports.
+- 📄 **PDF-Based Threat Intelligence:** Extracts relevant information from uploaded security reports and documents.
+- 🧠 **Retrieval-Augmented Generation (RAG):** Uses HuggingFace embeddings and FAISS to retrieve relevant document passages based on the user's query.
+- 🌐 **Live Web Research:** Integrates DuckDuckGo Search (`ddgs`) to retrieve additional cybersecurity information from the web.
+- 🤖 **Multi-Agent Orchestration:** Uses LangGraph to coordinate specialized agents through a structured workflow.
+- 🔍 **Technical Research:** Combines findings from local documents and web searches to help identify relevant vulnerabilities, CVEs, and threat information.
+- 📊 **Executive-Level Reporting:** Uses a local LLM to synthesize research findings into concise, readable summaries.
 
-## 🏗️ Architecture
+## 🏗️ System Architecture
 
 ```text
-             ┌──────────────────────────┐
-             │       User Topic         │
-             └────────────┬─────────────┘
-                          │
-                          ▼
-             ┌──────────────────────────┐
-             │    Researcher Agent      │
-             │                          │
-             │  • DuckDuckGo Search     │
-             │  • Information Retrieval │
-             │  • Technical Fact Mining │
-             └────────────┬─────────────┘
-                          │
-                          ▼
-             ┌──────────────────────────┐
-             │      Writer Agent        │
-             │                          │
-             │  • Ollama: llama3.2      │
-             │  • Research Synthesis    │
-             │  • Executive Summaries   │
-             └────────────┬─────────────┘
-                          │
-                          ▼
-             ┌──────────────────────────┐
-             │   Final Threat Report    │
-             │                          │
-             │  • Three Key Takeaways   │
-             │  • Concise Findings      │
-             └──────────────────────────┘
+             ┌─────────────────────────────┐
+             │   Streamlit Web Dashboard   │
+             │                             │
+             │  • Threat Query Input       │
+             │  • PDF Document Upload      │
+             └──────────────┬──────────────┘
+                            │
+                            ▼
+             ┌─────────────────────────────┐
+             │     Document Processing     │
+             │                             │
+             │  • PDF Text Extraction      │
+             │  • Text Chunking            │
+             │  • HuggingFace Embeddings   │
+             │  • FAISS Vector Index       │
+             └──────────────┬──────────────┘
+                            │
+                            ▼
+             ┌─────────────────────────────┐
+             │      Researcher Agent       │
+             │                             │
+             │  • Local PDF Retrieval      │
+             │  • DuckDuckGo Web Search    │
+             │  • Research Consolidation   │
+             └──────────────┬──────────────┘
+                            │
+                            ▼
+             ┌─────────────────────────────┐
+             │        Writer Agent         │
+             │                             │
+             │  • Ollama: llama3.2         │
+             │  • Research Synthesis       │
+             │  • Executive Summarization  │
+             └──────────────┬──────────────┘
+                            │
+                            ▼
+             ┌─────────────────────────────┐
+             │     Final Threat Report     │
+             │                             │
+             │  • Key Findings              │
+             │  • Threat Summary            │
+             │  • Relevant Evidence         │
+             └─────────────────────────────┘
 ```
 
-### Agent Responsibilities
+## 🔄 How It Works
 
-**1. Researcher Agent**
-- Searches the web for information relevant to the user's cybersecurity topic.
-- Collects and organizes technical findings from search results.
-- Passes research notes to the next agent.
-
-**2. Writer Agent**
-- Uses the locally running `llama3.2` model through Ollama.
-- Synthesizes the research notes into a readable executive summary.
-- Produces a concise, three-bullet threat report.
+1. **User Input:** The user enters a cybersecurity threat query through the Streamlit dashboard and optionally uploads relevant PDF reports.
+2. **Document Processing:** The application extracts PDF text, divides it into smaller chunks, generates embeddings using `all-MiniLM-L6-v2`, and indexes the embeddings using FAISS.
+3. **Researcher Agent:** Retrieves relevant passages from the local document index and gathers supplementary information through DuckDuckGo Search.
+4. **Writer Agent:** Uses the locally running `llama3.2` model through Ollama to synthesize the available research into an executive-level report.
+5. **Report Generation:** The resulting summary is displayed through the Streamlit interface.
 
 ## 🛠️ Tech Stack
 
 | Technology | Purpose |
 |---|---|
 | Python 3.12 | Core programming language |
-| LangGraph | Agent workflow orchestration |
-| LangChain | LLM integration and application components |
-| Ollama | Local language model inference |
-| Llama 3.2 | Text generation and report synthesis |
-| DuckDuckGo Search (`ddgs`) | Web-based information retrieval |
-| Python-dotenv | Environment variable management |
+| Streamlit | Interactive web dashboard |
+| LangGraph | Multi-agent workflow orchestration |
+| LangChain | LLM and retrieval integration |
+| Ollama | Local model inference |
+| Llama 3.2 | Threat report generation |
+| HuggingFace `all-MiniLM-L6-v2` | Text embeddings |
+| FAISS | Vector indexing and similarity search |
+| PyPDF | PDF text extraction, if used by the implementation |
+| DuckDuckGo Search (`ddgs`) | Live web information retrieval |
 
 ## 🚀 Getting Started
 
 ### Prerequisites
 
-Install the following before running the project:
+Ensure the following are installed:
 
 - Python 3.12
-- [Ollama](https://ollama.com/)
 - Git
+- [Ollama](https://ollama.com/)
 
-### 1. Download the Local Model
+### 1. Download the Local Language Model
 
 Open PowerShell and run:
 
@@ -87,7 +102,7 @@ Open PowerShell and run:
 ollama pull llama3.2
 ```
 
-Ensure Ollama is running before executing the application.
+Ensure Ollama is running before launching the application.
 
 ### 2. Clone the Repository
 
@@ -96,68 +111,67 @@ git clone https://github.com/Ritvik-io/multiagent-threat-triage.git
 cd multiagent-threat-triage
 ```
 
-### 3. Create a Virtual Environment
+### 3. Create and Activate a Virtual Environment
 
 ```powershell
 python -3.12 -m venv venv
 .\venv\Scripts\Activate.ps1
 ```
 
-If PowerShell blocks activation, consult the [Python virtual environment documentation](https://docs.python.org/3/library/venv.html).
+If the `python -3.12` command is unavailable, ensure Python 3.12 is installed and accessible through the Python launcher.
 
 ### 4. Install Dependencies
 
 ```powershell
 python -m pip install --upgrade pip
-pip install langgraph langchain-ollama langchain-community ddgs python-dotenv
+pip install -r requirements.txt
 ```
 
-### 5. Run the Application
+### 5. Launch the Application
 
 ```powershell
-python MultiAgent.py
+streamlit run app.py
 ```
 
-Follow the application's prompts, if provided, to research a cybersecurity topic and generate a threat report.
+Streamlit will display a local URL in the terminal. Open that URL in your browser to access the dashboard.
 
 ## 💡 Example Use Cases
 
-The system can be used to research topics such as:
+The system can assist with preliminary research into:
 
 - Common Vulnerabilities and Exposures (CVE)
-- Ransomware and emerging malware campaigns
-- Phishing techniques and social engineering
-- Vulnerability trends and attack vectors
-- Cybersecurity incidents and threat developments
-
-*The quality and freshness of results depend on the available search results, the model, and the implementation.*
+- Ransomware and malware campaigns
+- Phishing attacks and social engineering
+- Vulnerability information contained in uploaded security reports
+- Emerging cybersecurity threats and attack vectors
+- Technical security documents requiring concise executive summaries
 
 ## 🔐 Privacy and Security
 
-- The language model runs locally through Ollama.
-- Research and report generation do not require a paid cloud LLM API.
-- Web searches still send search queries to an external search provider.
-- Retrieved web content should be treated as untrusted input.
-- AI-generated findings should be verified against reliable sources before being used for security decisions.
+- **Local inference:** The language model processes prompts locally through Ollama.
+- **Local document retrieval:** PDF embeddings and FAISS indexing can run locally.
+- **No paid cloud LLM required:** The core workflow uses a locally hosted language model.
+- **External web retrieval:** DuckDuckGo searches require an internet connection and send search queries to an external service.
+- **Sensitive documents:** Uploaded PDFs and extracted text should be handled carefully and should not be assumed to be protected merely because the LLM runs locally.
 
-**Note:** Local inference does not mean the entire workflow is offline. Live web research requires an internet connection.
+**Important:** Local model inference does not make the entire application offline. Web search requires internet access, and actual privacy depends on how the application handles uploaded files, logs, caches, and temporary data.
 
 ## 🔮 Future Improvements
 
 Potential enhancements include:
 
-- Integration with the official NVD CVE API.
-- CVSS severity scoring and vulnerability prioritization.
-- Source URLs and evidence citations in generated reports.
+- CVSS-based vulnerability prioritization.
+- Integration with the official National Vulnerability Database (NVD) API.
+- Source citations and evidence-linked findings.
 - MITRE ATT&CK technique mapping.
-- Structured JSON output for downstream security tools.
-- Automated report export to Markdown or PDF.
-- Additional specialized agents for vulnerability analysis and remediation recommendations.
-- Evaluation tests for factual accuracy and source reliability.
+- Structured JSON threat reports.
+- PDF and Markdown report exports.
+- Additional agents for vulnerability analysis and remediation recommendations.
+- Automated evaluation of report accuracy and evidence quality.
 
 ## ⚠️ Disclaimer
 
-This project is intended for educational cybersecurity research and defensive threat intelligence. AI-generated reports may contain inaccurate or incomplete information. Verify findings with trusted security advisories and authoritative sources before taking action.
+This project is intended for educational purposes and defensive cybersecurity research. AI-generated findings may be incomplete or inaccurate. Verify vulnerabilities, severity assessments, and recommendations against authoritative security advisories before making security decisions.
 
 ## 👨‍💻 Author
 
@@ -167,4 +181,4 @@ GitHub: [Ritvik-io](https://github.com/Ritvik-io)
 
 ---
 
-*Built to explore local AI, multi-agent orchestration, and cybersecurity threat intelligence.*
+*Exploring the intersection of local AI, retrieval-augmented generation, multi-agent systems, and cybersecurity threat intelligence.*
